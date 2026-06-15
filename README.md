@@ -9,6 +9,8 @@
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=for-the-badge)](https://github.com/RamXCat/Connecto)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
+### 📱 [Download the Connecto Mobile App Here](https://bit.ly/3Qi1hps) 📱
+
 [Features](#-key-features) • [Architecture](#-how-it-works) • [Installation](#-quickstart) • [API](#-api-reference) • [Configuration](#-configuration)
 
 </div>
