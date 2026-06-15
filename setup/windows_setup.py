@@ -30,14 +30,14 @@ start "" "{pythonw_path}" "{agent_path}"
         f.write(bat_content)
 
     print(f"""
-    ✅ Windows auto-start configured!
-    ┌─────────────────────────────────┐
-    │ Startup file created at:        │
-    │ {bat_path}
-    │                                 │
-    │ Stitch will now start           │
-    │ automatically on every boot ✓   │
-    └─────────────────────────────────┘
+    [SUCCESS] Windows auto-start configured!
+    -----------------------------------
+    Startup file created at:
+    {bat_path}
+    
+    Stitch will now start
+    automatically on every boot :)
+    -----------------------------------
     """)
 
 def remove_windows():
@@ -50,6 +50,6 @@ def remove_windows():
 
     if os.path.exists(bat_path):
         os.remove(bat_path)
-        print("✅ Auto-start removed successfully")
+        print("[SUCCESS] Auto-start removed successfully")
     else:
-        print("⚠️ No auto-start found to remove")
+        print("[WARN] No auto-start found to remove")

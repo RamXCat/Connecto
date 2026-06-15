@@ -9,9 +9,9 @@ def main():
     os_name = platform.system()
 
     print("""
-    ╔══════════════════════════════════╗
-    ║     STITCH AGENT AUTO-START      ║
-    ╠══════════════════════════════════╣
+    ************************************
+    *     STITCH AGENT AUTO-START      *
+    ************************************
     """)
 
     if os_name == "Windows":
