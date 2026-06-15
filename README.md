@@ -90,7 +90,7 @@ mvn clean javafx:run
 Create a `.exe` file that doesn't require Java to run.
 ```bash
 mvn clean package
-jpackage --type app-image --name ConnectoAgent --input target --main-jar agent-1.0-SNAPSHOT.jar --main-class com.connecto.agent.Launcher --add-modules java.se,jdk.unsupported,jdk.charsets --icon ../logo/logo.ico --win-console
+jpackage --type app-image --name ConnectoAgent --input target --main-jar agent-1.0-SNAPSHOT.jar --main-class com.connecto.agent.Launcher --add-modules java.se,jdk.unsupported,jdk.charsets --icon ../logo/logo.ico
 ```
 This will generate a `ConnectoAgent` folder containing your `.exe`!
 
