@@ -60,6 +60,9 @@ public class MainApp extends Application {
         primaryStage.setTitle("Connecto - Stitch Agent");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
+        
+        setupSystemTray(primaryStage); // Add System Tray logic
+        
         primaryStage.show();
 
         // Boot systems in background thread
@@ -108,6 +111,56 @@ public class MainApp extends Application {
         if (server != null) server.stop();
         if (broadcaster != null) broadcaster.stopBroadcasting();
         System.exit(0);
+    }
+
+    private void setupSystemTray(Stage primaryStage) {
+        if (!java.awt.SystemTray.isSupported()) return;
+
+        Platform.setImplicitExit(false); // Keep JavaFX alive when window closes
+
+        try {
+            java.awt.TrayIcon trayIcon = new java.awt.TrayIcon(
+                java.awt.Toolkit.getDefaultToolkit().getImage(MainApp.class.getResource("/logo.png")),
+                "Connecto Agent"
+            );
+            trayIcon.setImageAutoSize(true);
+
+            java.awt.PopupMenu popup = new java.awt.PopupMenu();
+            
+            java.awt.MenuItem openItem = new java.awt.MenuItem("Show QR Code");
+            openItem.addActionListener(e -> Platform.runLater(() -> {
+                primaryStage.show();
+                primaryStage.toFront();
+            }));
+
+            java.awt.MenuItem exitItem = new java.awt.MenuItem("Quit Connecto");
+            exitItem.addActionListener(e -> {
+                java.awt.SystemTray.getSystemTray().remove(trayIcon);
+                Platform.exit();
+                System.exit(0);
+            });
+
+            popup.add(openItem);
+            popup.add(exitItem);
+            trayIcon.setPopupMenu(popup);
+
+            // Double click tray icon to open
+            trayIcon.addActionListener(e -> Platform.runLater(() -> {
+                primaryStage.show();
+                primaryStage.toFront();
+            }));
+
+            java.awt.SystemTray.getSystemTray().add(trayIcon);
+
+            // Override 'X' button to hide window instead of exiting
+            primaryStage.setOnCloseRequest(e -> {
+                primaryStage.hide();
+                e.consume();
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private Image generateQRCode(String text) throws Exception {
