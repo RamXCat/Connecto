@@ -88,34 +88,19 @@ You can customize the agent's behavior by editing the `config.py` file:
 
 ## 💻 Making it Auto-Start on Boot
 
-### Windows
-1. Create a `startup.bat` file containing:
-   ```bat
-   @echo off
-   cd C:\Path\To\stitch-agent
-   python main.py
-   ```
-2. Press `Win + R`, type `shell:startup`, and press Enter.
-3. Place the `.bat` file (or a shortcut to it) in the startup folder.
+We have included a cross-platform auto-start setup system. This allows the Stitch Agent to boot silently in the background whenever you turn on your machine.
 
-### macOS
-Create a `.plist` file in `~/Library/LaunchAgents/com.stitch.agent.plist`:
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<plist version="1.0">
-<dict>
-  <key>Label</key>
-  <string>com.stitch.agent</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>/usr/bin/python3</string>
-    <string>/path/to/stitch-agent/main.py</string>
-  </array>
-  <key>RunAtLoad</key>
-  <true/>
-</dict>
-</plist>
+Simply run:
+```bash
+python setup/setup.py
 ```
+The script will automatically detect whether you are on Windows, macOS, or Linux, and configure the correct startup service!
+
+### Removing Auto-Start
+If you ever want to stop Stitch Agent from starting on boot, run the relevant python command for your OS:
+- **Windows**: `python -c "from setup.windows_setup import remove_windows; remove_windows()"`
+- **macOS**: `python -c "from setup.mac_setup import remove_mac; remove_mac()"`
+- **Linux**: `python -c "from setup.linux_setup import remove_linux; remove_linux()"`
 
 ---
 
