@@ -10,6 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 ### 📱 [Download the Connecto Mobile App Here](https://bit.ly/3Qi1hps) 📱
+### 💻 [Download the Windows Agent (.exe) Here](https://drive.google.com/drive/folders/1wz6oP42K62QzJd2F12rckcUf18lNY2cu?usp=sharing) 💻
 
 [Features](#-key-features) • [Architecture](#-how-it-works) • [Installation](#-quickstart) • [Configuration](#-configuration)
 
