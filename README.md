@@ -2,16 +2,16 @@
 
 # 🚀 Stitch Agent for Connecto
 
-**The seamless, cross-platform bridge between your mobile device and your computer.**
+**The seamless, zero-dependency Java bridge between your mobile device and your computer.**
 
-[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Flask](https://img.shields.io/badge/flask-3.0.0-green.svg?style=for-the-badge&logo=flask)](https://flask.palletsprojects.com/)
+[![Java](https://img.shields.io/badge/Java-17-blue.svg?style=for-the-badge&logo=java&logoColor=white)](https://oracle.com/java)
+[![JavaFX](https://img.shields.io/badge/JavaFX-GUI-orange.svg?style=for-the-badge)](https://openjfx.io/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=for-the-badge)](https://github.com/RamXCat/Connecto)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 ### 📱 [Download the Connecto Mobile App Here](https://bit.ly/3Qi1hps) 📱
 
-[Features](#-key-features) • [Architecture](#-how-it-works) • [Installation](#-quickstart) • [API](#-api-reference) • [Configuration](#-configuration)
+[Features](#-key-features) • [Architecture](#-how-it-works) • [Installation](#-quickstart) • [Configuration](#-configuration)
 
 </div>
 
@@ -19,9 +19,9 @@
 
 ## 📖 Overview
 
-**Stitch Agent** is a lightweight, zero-configuration background daemon that runs on your local machine. It allows the **Connecto Mobile App** to discover your laptop on the local network automatically and execute secure, authorized system commands (Shutdown, Sleep, Restart, Lock).
+**Stitch Agent** is a lightweight, zero-configuration background daemon and graphical interface running on your local machine. It allows the **Connecto Mobile App** to discover your laptop on the local network automatically and execute secure, authorized system commands (Shutdown, Sleep, Restart, Lock).
 
-By utilizing a hybrid **UDP/HTTP architecture**, Stitch completely eliminates the need for manual IP configuration.
+Recently upgraded from a Python script to a **100% Native JavaFX Desktop Application**, Stitch now features a gorgeous UI, real-time QR code generation, and zero dependencies required for the end user.
 
 ---
 
@@ -29,12 +29,11 @@ By utilizing a hybrid **UDP/HTTP architecture**, Stitch completely eliminates th
 
 | Feature | Description |
 | :--- | :--- |
-| **📡 Auto-Discovery** | UDP broadcaster announces your IP every 3 seconds. The app finds your PC instantly, even if your router assigns a new IP. |
-| **🔒 Zero-Trust Security** | All endpoints are protected via strict Bearer Token authentication. |
-| **🌙 Soft Sleep (Windows)** | Intelligently turns off the display monitor instead of suspending the OS, keeping the server alive to wake it up later. |
-| **☀️ Magic Wake-Up** | Pinging the server simulates a micro hardware event, instantly waking your monitors from sleep. |
-| **💻 True Cross-Platform** | Native system calls tailored perfectly for Windows, macOS, and Linux. |
-| **👻 Silent Background Service** | Built-in setup scripts configure the agent to boot silently with your OS. |
+| **📡 Auto-Discovery** | Custom Java UDP thread announces your IP every 3 seconds. The app finds your PC instantly. |
+| **📱 1-Click QR Pairing** | Beautiful JavaFX UI generates an instant QR code for mobile pairing using ZXing. |
+| **🔒 Zero-Trust Security** | All NanoHTTPD endpoints are protected via strict Bearer Token authentication. |
+| **📦 Zero Dependencies** | Packaged via `jpackage`, the `.exe` bundles its own JRE. No Java installation needed! |
+| **💻 Cross-Platform** | Native system `Runtime.exec` calls tailored perfectly for Windows, macOS, and Linux. |
 
 ---
 
@@ -43,8 +42,8 @@ By utilizing a hybrid **UDP/HTTP architecture**, Stitch completely eliminates th
 ```mermaid
 sequenceDiagram
     participant App as Connecto App (Phone)
-    participant UDP as UDP Broadcaster (Laptop)
-    participant Flask as HTTP Server (Laptop)
+    participant UDP as UDP Broadcaster (Java Thread)
+    participant Server as NanoHTTPD Server (Java)
     
     Note over UDP: Background thread broadcasting port 55555
     loop Every 3 Seconds
@@ -53,9 +52,9 @@ sequenceDiagram
     
     App->>App: Auto-Updates IP Address
     
-    Note over App,Flask: User taps "Sleep" in Mobile App
-    App->>Flask: POST /sleep (Authorization: Bearer <token>)
-    Flask-->>App: 200 OK (Translates to OS-specific sleep command)
+    Note over App,Server: User taps "Sleep" in Mobile App
+    App->>Server: POST /sleep (Authorization: Bearer <token>)
+    Server-->>App: 200 OK (Executes native OS sleep command)
 ```
 
 ---
@@ -65,54 +64,22 @@ sequenceDiagram
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/RamXCat/Connecto.git
-cd Connecto
+cd Connecto/java-fx-agent
 ```
 
-### 2. Set Your Secret Token
-Open `config.py` and change the `SECRET_TOKEN`. This token must match the one entered in your Connecto App.
-```python
-SECRET_TOKEN = "your-secure-passphrase-here"
-```
-
-### 3. Install Dependencies
+### 2. Run Locally (Development)
+Requires Maven and Java 17+.
 ```bash
-pip install -r requirements.txt
+mvn clean javafx:run
 ```
 
-### 4. Enable Auto-Start (Recommended)
-Configure the agent to boot completely silently in the background whenever you turn on your machine.
+### 3. Build Standalone Executable (Windows)
+Create a `.exe` file that doesn't require Java to run.
 ```bash
-python setup/setup.py
+mvn clean package
+jpackage --type app-image --name ConnectoAgent --input target --main-jar agent-1.0-SNAPSHOT.jar --main-class com.connecto.agent.Launcher --add-modules java.se,jdk.unsupported,jdk.charsets --icon ../logo/logo.ico --win-console
 ```
-*(Supports Windows, macOS, and Linux out of the box).*
-
----
-
-## 🛠️ API Reference
-
-Stitch Agent exposes a secure REST API on port `5000`. 
-**Requirement:** All requests must include the header `Authorization: Bearer <SECRET_TOKEN>`.
-
-| Endpoint | Method | Action | Platform Behavior |
-| :--- | :---: | :--- | :--- |
-| `/status` | `GET` | Verifies connection | Returns `{"status": "online"}` & wakes up monitors |
-| `/sleep` | `POST` | Sleep system | **Win:** Powers off monitor. **Mac/Linux:** Suspend |
-| `/shutdown`| `POST` | Shutdown system | Executes native graceful shutdown |
-| `/restart` | `POST` | Reboot system | Executes native graceful reboot |
-| `/lock` | `POST` | Lock Workstation | Returns to login screen |
-
----
-
-## ⚙️ Configuration
-
-Modify `config.py` to tailor the agent to your network:
-
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `DEVICE_NAME` | `"My Laptop"` | The display name broadcasted to the Connecto app. |
-| `HTTP_PORT` | `5000` | The port the command receiver listens on. |
-| `BROADCAST_PORT` | `55555` | The UDP port used for LAN discovery broadcasts. |
-| `BROADCAST_INTERVAL`| `3` | Seconds between UDP IP announcements. |
+This will generate a `ConnectoAgent` folder containing your `.exe`!
 
 ---
 

@@ -1,6 +1,0 @@
-{
-  "name": "connecto",
-  "description": "Secure remote laptop shutdown, restart, and sleep controller app.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
