@@ -3,6 +3,7 @@ import threading
 from broadcaster import DeviceBroadcaster
 from server import app
 from config import HTTP_PORT, DEVICE_NAME, get_local_ip
+from qr import print_qr_terminal
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,6 +23,9 @@ if __name__ == "__main__":
     ║  Status : Running ✓
     ╚══════════════════════════════════╝
     """)
+
+    # Print QR Code in Terminal for quick pairing
+    print_qr_terminal()
 
     # Start UDP broadcaster (IP announcer)
     broadcaster = DeviceBroadcaster()

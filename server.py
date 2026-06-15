@@ -5,6 +5,7 @@ import platform
 import logging
 import ctypes
 import os
+from qr import get_qr_base64, generate_qr_payload
 
 app = Flask(__name__)
 
@@ -28,6 +29,16 @@ def wake_up_screen():
             subprocess.run(["osascript", "-e", 'tell application "System Events" to key code 123'], check=True)
     except Exception as e:
         print(f"Failed to trigger programmatic screen wake: {e}")
+
+# ── QR Code Endpoint ──────────────────────────
+@app.route('/qr', methods=['GET'])
+def get_qr_code():
+    # No token needed — this is how
+    # user gets the token in the first place
+    return jsonify({
+        "qr_base64": get_qr_base64(),
+        "payload":   generate_qr_payload()
+    })
 
 # ── Status endpoint ──────────────────────────
 @app.route('/status', methods=['GET'])
