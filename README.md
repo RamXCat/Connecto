@@ -26,6 +26,17 @@ Recently upgraded from a Python script to a **100% Native JavaFX Desktop Applica
 
 ---
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="demo/dashboard.jpeg" width="22%" alt="Dashboard" />
+  <img src="demo/add_device.jpeg" width="22%" alt="Add Device" />
+  <img src="demo/your_device.jpeg" width="22%" alt="Your Device" />
+  <img src="demo/settings.jpeg" width="22%" alt="Settings" />
+</p>
+
+---
+
 ## ✨ Key Features
 
 | Feature | Description |
