@@ -5,11 +5,16 @@ import java.io.IOException;
 
 public class HttpAgentServer extends NanoHTTPD {
     private final String secretToken;
+    private Runnable onShowRequest;
 
     public HttpAgentServer(int port, String secretToken) throws IOException {
         super(port);
         this.secretToken = secretToken;
         start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+    }
+
+    public void setOnShowRequest(Runnable onShowRequest) {
+        this.onShowRequest = onShowRequest;
     }
 
     @Override
@@ -19,6 +24,11 @@ public class HttpAgentServer extends NanoHTTPD {
 
         if (uri.equals("/status") && method == Method.GET) {
             return newFixedLengthResponse(Response.Status.OK, "application/json", "{\"status\":\"online\"}");
+        }
+
+        if (uri.equals("/show") && method == Method.GET) {
+            if (onShowRequest != null) onShowRequest.run();
+            return newFixedLengthResponse(Response.Status.OK, "application/json", "{\"status\":\"showing\"}");
         }
 
         if (method == Method.POST) {

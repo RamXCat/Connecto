@@ -15,8 +15,8 @@ target/
 .vscode/
 
 # JPackage output
-java-fx-agent/ConnectoAgent/
-java-fx-agent/crash.log
+windows sever/ConnectoAgent/
+windows sever/crash.log
 
 # Python
 __pycache__/

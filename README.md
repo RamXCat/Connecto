@@ -44,6 +44,8 @@ Recently upgraded from a Python script to a **100% Native JavaFX Desktop Applica
 | **📡 Auto-Discovery** | Custom Java UDP thread announces your IP every 3 seconds. The app finds your PC instantly. |
 | **📱 1-Click QR Pairing** | Beautiful JavaFX UI generates an instant QR code for mobile pairing using ZXing. |
 | **👻 System Tray Mode** | Close the window and the agent silently minimizes to the Windows System Tray to keep running in the background. |
+| **🔄 Auto-Startup** | Integrates with Windows Registry to silently launch on boot with a smart delay for network readiness. |
+| **🛡️ Single-Instance Lock** | Intelligently prevents duplicate processes. Attempting to launch again wakes the existing app! |
 | **🔒 Zero-Trust Security** | All NanoHTTPD endpoints are protected via strict Bearer Token authentication. |
 | **📦 Zero Dependencies** | Packaged via `jpackage`, the `.exe` bundles its own JRE. No Java installation needed! |
 | **💻 Cross-Platform** | Native system `Runtime.exec` calls tailored perfectly for Windows, macOS, and Linux. |
@@ -77,7 +79,7 @@ sequenceDiagram
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/RamXCat/Connecto.git
-cd Connecto/java-fx-agent
+cd "Connecto/windows sever"
 ```
 
 ### 2. Run Locally (Development)

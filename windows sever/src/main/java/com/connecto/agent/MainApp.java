@@ -62,13 +62,27 @@ public class MainApp extends Application {
         primaryStage.setResizable(false);
         
         setupSystemTray(primaryStage); // Add System Tray logic
+        setupStartup(); // Auto-add to startup on first run
         
-        primaryStage.show();
+        // Hide window if started automatically on system boot
+        boolean startMinimized = getParameters() != null && getParameters().getRaw().contains("--minimized");
+        if (!startMinimized) {
+            primaryStage.show();
+        } else {
+            // Additional check to ensure tray icon is added even if Explorer is still loading
+            // But we already added sleep in main()
+        }
 
         // Boot systems in background thread
         new Thread(() -> {
             try {
                 server = new HttpAgentServer(HTTP_PORT, SECRET_TOKEN);
+                server.setOnShowRequest(() -> Platform.runLater(() -> {
+                    primaryStage.show();
+                    primaryStage.setIconified(false);
+                    primaryStage.toFront();
+                }));
+                
                 broadcaster = new UdpBroadcaster(DEVICE_NAME, HTTP_PORT);
                 broadcaster.start();
 
@@ -92,7 +106,9 @@ public class MainApp extends Application {
 
             } catch (Throwable t) {
                 try {
-                    java.io.PrintWriter pw = new java.io.PrintWriter("crash.log");
+                    String tmpDir = System.getProperty("java.io.tmpdir");
+                    java.io.File logFile = new java.io.File(tmpDir, "connecto_crash.log");
+                    java.io.PrintWriter pw = new java.io.PrintWriter(logFile);
                     t.printStackTrace(pw);
                     pw.close();
                 } catch (Exception ignored) {}
@@ -114,11 +130,11 @@ public class MainApp extends Application {
     }
 
     private void setupSystemTray(Stage primaryStage) {
-        if (!java.awt.SystemTray.isSupported()) return;
-
         Platform.setImplicitExit(false); // Keep JavaFX alive when window closes
 
         try {
+            if (!java.awt.SystemTray.isSupported()) return;
+
             java.awt.TrayIcon trayIcon = new java.awt.TrayIcon(
                 java.awt.Toolkit.getDefaultToolkit().getImage(MainApp.class.getResource("/logo.png")),
                 "Connecto Agent"
@@ -135,7 +151,9 @@ public class MainApp extends Application {
 
             java.awt.MenuItem exitItem = new java.awt.MenuItem("Quit Connecto");
             exitItem.addActionListener(e -> {
-                java.awt.SystemTray.getSystemTray().remove(trayIcon);
+                try {
+                    java.awt.SystemTray.getSystemTray().remove(trayIcon);
+                } catch (Throwable ignored) {}
                 Platform.exit();
                 System.exit(0);
             });
@@ -152,12 +170,46 @@ public class MainApp extends Application {
 
             java.awt.SystemTray.getSystemTray().add(trayIcon);
 
-            // Override 'X' button to hide window instead of exiting
-            primaryStage.setOnCloseRequest(e -> {
-                primaryStage.hide();
-                e.consume();
-            });
+        } catch (Throwable e) {
+            System.err.println("Tray icon not supported or missing java.desktop: " + e.getMessage());
+        }
 
+        // Override 'X' button to hide window instead of exiting
+        primaryStage.setOnCloseRequest(e -> {
+            primaryStage.hide();
+            e.consume();
+        });
+    }
+
+    private void setupStartup() {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (!os.contains("win")) return; // Only for Windows
+            
+            String exePath = ProcessHandle.current().info().command().orElse("");
+            if (exePath.isEmpty() || !exePath.toLowerCase().endsWith(".exe")) {
+                String currentDir = System.getProperty("user.dir");
+                java.io.File exeFile = new java.io.File(currentDir, "ConnectoAgent.exe");
+                if (exeFile.exists()) {
+                    exePath = exeFile.getAbsolutePath();
+                } else {
+                    return; // Cannot determine exe path safely
+                }
+            }
+
+            // Use Registry Run key instead of Startup folder for better reliability
+            String regCommand = "reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v ConnectoAgent /t REG_SZ /d \"\\\"" + exePath + "\\\" --minimized\" /f";
+            Runtime.getRuntime().exec(regCommand);
+            
+            // Remove old startup shortcut if it exists
+            String appData = System.getenv("APPDATA");
+            if (appData != null) {
+                java.io.File oldShortcut = new java.io.File(appData, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\ConnectoAgent.lnk");
+                if (oldShortcut.exists()) {
+                    oldShortcut.delete();
+                }
+            }
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -172,6 +224,37 @@ public class MainApp extends Application {
     }
 
     public static void main(String[] args) {
+        boolean startMinimized = false;
+        for (String arg : args) {
+            if (arg.equals("--minimized")) {
+                startMinimized = true;
+                break;
+            }
+        }
+
+        if (startMinimized) {
+            // Delay startup to give OS and Explorer time to initialize network and taskbar
+            try {
+                Thread.sleep(8000);
+            } catch (InterruptedException ignored) {}
+        }
+
+        // Enforce single instance: If already running, tell the first instance to show its window and exit this one.
+        try {
+            java.net.URL url = new java.net.URL("http://127.0.0.1:5000/show");
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(500);
+            conn.setReadTimeout(500);
+            if (conn.getResponseCode() == 200) {
+                System.out.println("Application is already running. Waking up existing instance.");
+                System.exit(0);
+                return;
+            }
+        } catch (Exception e) {
+            // Not running yet, proceed with normal startup.
+        }
+
         launch(args);
     }
 }
