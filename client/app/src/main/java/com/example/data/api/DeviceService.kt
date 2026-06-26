@@ -37,6 +37,18 @@ interface DeviceService {
         @Url url: String,
         @Header("Authorization") authHeader: String
     ): Response<Unit>
+
+    @POST
+    suspend fun setVolume(
+        @Url url: String,
+        @Header("Authorization") authHeader: String
+    ): Response<Unit>
+
+    @POST
+    suspend fun setBrightness(
+        @Url url: String,
+        @Header("Authorization") authHeader: String
+    ): Response<Unit>
 }
 
 @JsonClass(generateAdapter = true)

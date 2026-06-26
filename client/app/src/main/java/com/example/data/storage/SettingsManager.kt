@@ -33,4 +33,12 @@ class SettingsManager(context: Context) {
     var isConnectionLostAlertsEnabled: Boolean
         get() = prefs.getBoolean(KEY_CONNECTION_LOST_ALERTS_ENABLED, false)
         set(value) = prefs.edit().putBoolean(KEY_CONNECTION_LOST_ALERTS_ENABLED, value).apply()
+
+    var volumeLevel: Int
+        get() = prefs.getInt("volume_level", 50)
+        set(value) = prefs.edit().putInt("volume_level", value).apply()
+
+    var brightnessLevel: Int
+        get() = prefs.getInt("brightness_level", 50)
+        set(value) = prefs.edit().putInt("brightness_level", value).apply()
 }

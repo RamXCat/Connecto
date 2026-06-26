@@ -68,6 +68,13 @@ class DeviceViewModel(application: Application) : AndroidViewModel(application) 
     private val _isCommandInProgress = MutableStateFlow(false)
     val isCommandInProgress = _isCommandInProgress.asStateFlow()
 
+    // Persistent volume and brightness states (0 to 100)
+    private val _volumeLevel = MutableStateFlow(settings.volumeLevel)
+    val volumeLevel: StateFlow<Int> = _volumeLevel.asStateFlow()
+
+    private val _brightnessLevel = MutableStateFlow(settings.brightnessLevel)
+    val brightnessLevel: StateFlow<Int> = _brightnessLevel.asStateFlow()
+
     init {
         // Automatically fetch online status for devices when active device changes
         viewModelScope.launch {
@@ -314,6 +321,40 @@ class DeviceViewModel(application: Application) : AndroidViewModel(application) 
                 }
                 is CommandResult.Error -> {
                     _toastEvent.emit(result.message)
+                }
+            }
+        }
+    }
+
+    fun setVolume(device: Device, level: Int) {
+        _volumeLevel.value = level
+        settings.volumeLevel = level
+        viewModelScope.launch {
+            val decryptedToken = CryptoHelper.decrypt(device.encryptedToken, device.iv)
+            val url = DeviceApiClient.buildUrl(device.ipAddress, "/volume?level=$level")
+            val auth = DeviceApiClient.buildAuthHeader(decryptedToken)
+            withContext(Dispatchers.IO) {
+                try {
+                    DeviceApiClient.service.setVolume(url, auth)
+                } catch (e: Exception) {
+                    android.util.Log.e("CONTROL", "Failed to set volume: ${e.message}")
+                }
+            }
+        }
+    }
+
+    fun setBrightness(device: Device, level: Int) {
+        _brightnessLevel.value = level
+        settings.brightnessLevel = level
+        viewModelScope.launch {
+            val decryptedToken = CryptoHelper.decrypt(device.encryptedToken, device.iv)
+            val url = DeviceApiClient.buildUrl(device.ipAddress, "/brightness?level=$level")
+            val auth = DeviceApiClient.buildAuthHeader(decryptedToken)
+            withContext(Dispatchers.IO) {
+                try {
+                    DeviceApiClient.service.setBrightness(url, auth)
+                } catch (e: Exception) {
+                    android.util.Log.e("CONTROL", "Failed to set brightness: ${e.message}")
                 }
             }
         }

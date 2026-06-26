@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -112,9 +114,10 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 // Greeting and device name section
                 Column(
@@ -338,6 +341,145 @@ fun HomeScreen(
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
                             )
+                        }
+                    }
+                }
+
+                // Volume and Brightness Sliders Card
+                if (activeDevice != null) {
+                    val status = viewModel.deviceStatuses[activeDevice.id] ?: DeviceOnlineStatus.Unknown
+                    val isOnline = status == DeviceOnlineStatus.Online
+                    val volume by viewModel.volumeLevel.collectAsState()
+                    val brightness by viewModel.brightnessLevel.collectAsState()
+
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = CardSurface),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = "DEVICE ADJUSTMENTS",
+                                color = TextMuted,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 1.sp
+                            )
+
+                            // Volume Controller
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = when {
+                                                volume == 0 -> Icons.Default.VolumeMute
+                                                volume < 40 -> Icons.Default.VolumeDown
+                                                else -> Icons.Default.VolumeUp
+                                            },
+                                            contentDescription = "Volume",
+                                            tint = if (isOnline) TealAccent else TextMuted,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Text(
+                                            text = "Volume",
+                                            color = if (isOnline) Color.White else TextMuted,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    Text(
+                                        text = "$volume%",
+                                        color = if (isOnline) TealAccent else TextMuted,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Slider(
+                                    value = volume.toFloat(),
+                                    onValueChange = { if (isOnline) viewModel.setVolume(activeDevice, it.toInt()) },
+                                    valueRange = 0f..100f,
+                                    enabled = isOnline,
+                                    colors = SliderDefaults.colors(
+                                        activeTrackColor = TealAccent,
+                                        inactiveTrackColor = Color.White.copy(alpha = 0.1f),
+                                        thumbColor = TealAccent,
+                                        disabledActiveTrackColor = TextMuted.copy(alpha = 0.3f),
+                                        disabledThumbColor = TextMuted
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+
+                            Divider(color = Color.White.copy(alpha = 0.05f), thickness = 1.dp)
+
+                            // Brightness Controller
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.BrightnessMedium,
+                                            contentDescription = "Brightness",
+                                            tint = if (isOnline) TealAccent else TextMuted,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Text(
+                                            text = "Brightness",
+                                            color = if (isOnline) Color.White else TextMuted,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    Text(
+                                        text = "$brightness%",
+                                        color = if (isOnline) TealAccent else TextMuted,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Slider(
+                                    value = brightness.toFloat(),
+                                    onValueChange = { if (isOnline) viewModel.setBrightness(activeDevice, it.toInt()) },
+                                    valueRange = 0f..100f,
+                                    enabled = isOnline,
+                                    colors = SliderDefaults.colors(
+                                        activeTrackColor = TealAccent,
+                                        inactiveTrackColor = Color.White.copy(alpha = 0.1f),
+                                        thumbColor = TealAccent,
+                                        disabledActiveTrackColor = TextMuted.copy(alpha = 0.3f),
+                                        disabledThumbColor = TextMuted
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+
+                            if (!isOnline) {
+                                Text(
+                                    text = "Connect device to adjust sliders",
+                                    color = ShutdownRed,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                )
+                            }
                         }
                     }
                 }

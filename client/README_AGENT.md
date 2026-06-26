@@ -109,6 +109,21 @@ def shutdown_device(authorization: str = Header(None)):
     os.system("shutdown /s /t 5")
     return {"success": True, "message": "Shutdown initiated in 5 seconds"}
 
+@app.post("/volume")
+def set_volume(level: int, authorization: str = Header(None)):
+    verify_token(authorization)
+    # Set Master Volume via PowerShell Command
+    # Sets sound levels by simulating system keystrokes or using a volume adjuster
+    os.system(f"powershell -Command \"$wsh = New-Object -ComObject Wscript.Shell; 1..100 | % {{ $wsh.SendKeys([char]174) }}; 1..{int(level/2)} | % {{ $wsh.SendKeys([char]175) }}\"")
+    return {"success": True, "volume": level}
+
+@app.post("/brightness")
+def set_brightness(level: int, authorization: str = Header(None)):
+    verify_token(authorization)
+    # Adjust Windows screen brightness (WMI Method)
+    os.system(f"powershell -Command \"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, {level})\"")
+    return {"success": True, "brightness": level}
+
 if __name__ == "__main__":
     print(f"Starting Connecto Agent... Your token is: {AUTH_TOKEN}")
     uvicorn.run(app, host="0.0.0.0", port=5000)
@@ -182,6 +197,22 @@ app.post('/shutdown', (req, res) => {
   res.json({ success: true });
 });
 
+// Set Volume (0 to 100)
+app.post('/volume', (req, res) => {
+  const level = parseInt(req.query.level || 50);
+  exec(`powershell -Command "$wsh = New-Object -ComObject Wscript.Shell; 1..100 | % { $wsh.SendKeys([char]174) }; 1..${Math.round(level/2)} | % { $wsh.SendKeys([char]175) }"`);
+  res.json({ success: true, volume: level });
+});
+
+// Set Brightness (0 to 100)
+app.post('/brightness', (req, res) => {
+  const level = parseInt(req.query.level || 50);
+  exec(`powershell -Command "(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, ${level})"`, (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, brightness: level });
+  });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Connecto Agent app listening at http://0.0.0.0:${PORT}`);
 });
@@ -206,6 +237,8 @@ The agent must:
    - POST `/sleep` : Safely sleeps the screen monitor (not full system S3 hibernation to prevent server cutoff). Run: powershell (Add-Type '[DllImport(\"user32.dll\")]public class W{[DllImport(\"user32.dll\")]public static extern int SendMessage(int h,int m,int w,int l);}' -Name W -Passthru)::SendMessage(-1,0x0112,0xF170,2). This keeps the HTTP server alive while keeping the display off!
    - POST `/restart` : Initiate system reboot in 5 seconds (`shutdown /r /t 5`).
    - POST `/shutdown` : Power off the device in 5 seconds (`shutdown /s /t 5`).
+   - POST `/volume` : Adjust system volume (0 to 100, e.g. `/volume?level=50`).
+   - POST `/brightness` : Adjust system brightness (0 to 100, e.g. `/brightness?level=50`).
 
 Please generate the agent in Python using FastAPI/Uvicorn, and include instructions on how to install requirements and run it. Provide clear notes on how I can wake the screen back up physically (using mouse/Shift key) or programmatically via the phone app connecting.
 ```
